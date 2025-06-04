@@ -5,519 +5,437 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Autodidactic - Study Timer</title>
 <style>
-  :root {
-    --navy: #0b2342;
-    --black: #000000;
-    --blue: #0074d9;
-    --dark-black-blue: #001a33;
-    --white: #ffffff;
-    --gray-light: #ccc;
-    --gray-dark: #333;
-    --text-transparent: rgba(255,255,255,0.15);
-  }
+  @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
 
   body {
     margin: 0; padding: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: var(--navy);
-    color: var(--white);
+    font-family: 'Montserrat', sans-serif;
+    color: #eee;
+    background-color: #121212;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
   }
-
   header {
-    padding: 12px 20px;
     text-align: center;
+    padding: 1.5rem 1rem 0.2rem 1rem;
+  }
+  header h1 {
     font-weight: 900;
-    font-size: 1.8rem;
+    font-size: 2.8rem;
+    letter-spacing: 4px;
+    color: #eee;
     user-select: none;
-    letter-spacing: 0.06em;
+  }
+  header h2 {
+    font-weight: 300;
+    font-size: 1rem;
+    letter-spacing: 2px;
+    margin-top: 0.2rem;
+    color: #aaa;
+    user-select: none;
   }
 
-  #controls {
+  main {
+    flex: 1;
+    max-width: 480px;
+    margin: 1rem auto 2rem auto;
+    background: rgba(30,30,30,0.9);
+    border-radius: 10px;
+    padding: 1.5rem 2rem 2rem 2rem;
+    box-shadow: 0 0 20px rgba(0,0,0,0.8);
+  }
+
+  /* Background color selector */
+  #bgColors {
     display: flex;
     justify-content: center;
     gap: 12px;
-    flex-wrap: wrap;
-    margin: 10px auto 0;
+    margin-bottom: 20px;
   }
-
-  button, select {
-    padding: 8px 12px;
-    font-size: 1rem;
-    border-radius: 5px;
-    border: none;
+  .color-option {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
     cursor: pointer;
-    user-select: none;
-    transition: background-color 0.3s ease;
+    border: 3px solid transparent;
+    transition: border-color 0.3s ease;
+    box-shadow: 0 0 6px rgba(0,0,0,0.6);
   }
-
-  button:hover, select:hover {
-    background-color: var(--blue);
-    color: var(--white);
+  .color-option.selected {
+    border-color: #fff;
   }
+  /* Specific colors */
+  .black { background: #121212; }
+  .navy { background: #0a2240; }
+  .deep-red { background: #5a1e1e; }
+  .dark-purple { background: #2c1a3a; }
 
-  button:active {
-    transform: scale(0.97);
-  }
-
-  #timer-container {
-    max-width: 360px;
-    margin: 20px auto;
-    text-align: center;
-    position: relative;
-  }
-
-  #time-circle {
-    width: 320px;
-    height: 320px;
-    margin: 0 auto;
-    position: relative;
-  }
-
-  svg {
-    transform: rotate(-90deg);
-    width: 320px;
-    height: 320px;
-  }
-
-  circle {
-    fill: none;
-    stroke-width: 18;
-    stroke-linecap: round;
-  }
-
-  #background-circle {
-    stroke: var(--gray-dark);
-  }
-
-  #progress-circle {
-    stroke: var(--blue);
-    stroke-dasharray: 1000;
-    stroke-dashoffset: 1000;
-    transition: stroke-dashoffset 0.3s linear;
-  }
-
-  #time-display {
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 4.5rem;
-    font-weight: 800;
-    user-select: none;
-  }
-
-  #status-text {
-    margin-top: 10px;
-    font-size: 1.4rem;
+  /* Timer and task input */
+  label {
     font-weight: 600;
-    letter-spacing: 0.05em;
+    font-size: 1.1rem;
+    margin-bottom: 6px;
+    display: block;
+  }
+  input[type="text"], input[type="number"] {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: none;
+    margin-bottom: 15px;
+    font-size: 1rem;
+    background-color: #222;
+    color: #eee;
+  }
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  /* Buttons */
+  button {
+    background: #eee;
+    color: #121212;
+    font-weight: 700;
+    padding: 12px 20px;
+    margin-right: 10px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    user-select: none;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+  }
+  button:hover {
+    background-color: #ddd;
+  }
+  button:disabled {
+    background-color: #aaa;
+    cursor: not-allowed;
+  }
+
+  /* Timer display */
+  #timerDisplay {
+    font-size: 3.8rem;
+    text-align: center;
+    margin: 25px 0 15px 0;
+    font-weight: 900;
+    letter-spacing: 3px;
     user-select: none;
   }
 
-  #task-section {
-    max-width: 480px;
-    margin: 30px auto 0;
-    background: rgba(255 255 255 / 0.1);
-    border-radius: 12px;
-    padding: 20px;
+  /* Task list */
+  #tasksList {
+    margin-top: 10px;
   }
-
-  #task-list {
-    list-style: none;
-    padding: 0;
-    margin: 0 0 15px;
-    max-height: 180px;
-    overflow-y: auto;
-  }
-
-  #task-list li {
+  .task-item {
+    background: #222;
+    padding: 10px 15px;
+    margin-bottom: 10px;
+    border-radius: 8px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: rgba(255 255 255 / 0.15);
-    margin-bottom: 8px;
-    padding: 10px 14px;
-    border-radius: 6px;
-    font-weight: 600;
   }
-
-  #task-list li span {
+  .task-name {
     flex-grow: 1;
+    color: #eee;
+    font-weight: 600;
     user-select: text;
   }
-
-  #task-list li button {
-    background: #ff3b3b;
-    border: none;
-    color: white;
+  .task-time {
+    margin-left: 15px;
     font-weight: 700;
-    padding: 5px 10px;
-    border-radius: 5px;
-    cursor: pointer;
+    color: #bbb;
+    font-size: 0.9rem;
     user-select: none;
-    transition: background-color 0.3s ease;
   }
 
-  #task-list li button:hover {
-    background: #d23232;
-  }
-
-  #add-task-form {
+  /* Dark/light toggle container */
+  #toggles {
     display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+  }
+  .toggle-container {
+    display: flex;
+    align-items: center;
     gap: 10px;
   }
-
-  #add-task-form input[type="text"] {
-    flex-grow: 1;
-    padding: 8px 12px;
-    border-radius: 6px;
-    border: none;
-    font-size: 1rem;
+  label.toggle-label {
+    user-select: none;
+    font-weight: 600;
   }
-
-  #add-task-form button {
-    background: var(--blue);
-    color: white;
-    font-weight: 700;
-    border: none;
-    border-radius: 6px;
-    padding: 8px 16px;
+  input[type="checkbox"] {
+    width: 40px;
+    height: 20px;
+    -webkit-appearance: none;
+    background-color: #444;
+    outline: none;
+    border-radius: 12px;
+    transition: background-color 0.3s ease;
+    position: relative;
     cursor: pointer;
   }
-
-  #add-task-form button:hover {
-    background: #005bb5;
+  input[type="checkbox"]:checked {
+    background-color: #1e90ff;
+  }
+  input[type="checkbox"]::before {
+    content: '';
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    top: 1px;
+    left: 1px;
+    background-color: #eee;
+    transition: 0.3s;
+  }
+  input[type="checkbox"]:checked::before {
+    left: 21px;
   }
 
-  #man-hours {
+  /* Footer */
+  footer {
     text-align: center;
-    margin-top: 20px;
-    font-size: 1.2rem;
-    user-select: none;
-    font-weight: 600;
-  }
-
-  #footer-credit {
-    position: fixed;
-    bottom: 8px;
-    right: 10px;
+    color: rgba(255,255,255,0.15);
     font-size: 0.85rem;
-    color: var(--text-transparent);
     user-select: none;
-    pointer-events: none;
-    font-family: monospace;
-    letter-spacing: 0.04em;
+    margin-bottom: 12px;
   }
-
-  /* Dark/light mode toggle style */
-  #dark-light-toggle {
-    font-weight: 600;
-  }
-
-  /* Sound toggle button style */
-  #sound-toggle {
-    font-weight: 600;
-  }
-
-  /* Background color selector style */
-  #bg-select {
-    font-weight: 600;
-  }
-
 </style>
 </head>
 <body>
-<header>autodidactic - study timer</header>
 
-<div id="controls">
-  <button id="start-pause-btn">Start</button>
-  <button id="reset-btn">Reset</button>
-  <button id="sound-toggle" title="Toggle Alarm Sound">🔊 On</button>
-  <label for="dark-light-toggle" style="align-self:center;user-select:none;">🌙 / ☀️</label>
-  <input type="checkbox" id="dark-light-toggle" />
-  <select id="bg-select" title="Select Background Color">
-    <option value="navy" selected>Navy</option>
-    <option value="black">Black</option>
-    <option value="blue">Blue</option>
-    <option value="dark-black-blue">Dark Black Blue</option>
-  </select>
-</div>
+<header>
+  <h1>AUTODIDACTIC</h1>
+  <h2>STUDY TIMER</h2>
+</header>
 
-<div id="timer-container">
-  <div id="time-circle">
-    <svg>
-      <circle id="background-circle" cx="160" cy="160" r="150"></circle>
-      <circle id="progress-circle" cx="160" cy="160" r="150"></circle>
-    </svg>
-    <div id="time-display">25:00</div>
+<main>
+  <section id="bgColors">
+    <div class="color-option black selected" data-color="#121212" title="Black"></div>
+    <div class="color-option navy" data-color="#0a2240" title="Navy"></div>
+    <div class="color-option deep-red" data-color="#5a1e1e" title="Deep Red"></div>
+    <div class="color-option dark-purple" data-color="#2c1a3a" title="Dark Purple"></div>
+  </section>
+
+  <label for="taskName">Task Name</label>
+  <input type="text" id="taskName" placeholder="Enter task name (optional)" />
+
+  <label for="timerInput">Set Timer (minutes)</label>
+  <input type="number" id="timerInput" placeholder="e.g. 25" min="1" max="180" />
+
+  <div style="text-align:center; margin-bottom: 10px;">
+    <button id="startBtn">Start</button>
+    <button id="pauseBtn" disabled>Pause</button>
+    <button id="resetBtn" disabled>Reset</button>
   </div>
-  <div id="status-text">Work</div>
-</div>
 
-<div id="task-section">
-  <ul id="task-list"></ul>
-  <form id="add-task-form">
-    <input type="text" id="task-input" placeholder="Add new task..." maxlength="50" autocomplete="off" required />
-    <button type="submit">Add</button>
-  </form>
-</div>
+  <div id="timerDisplay">00:00</div>
 
-<div id="man-hours">Man Hours Studied: 0m</div>
+  <div id="toggles">
+    <div class="toggle-container">
+      <label for="darkModeToggle" class="toggle-label">Dark Mode</label>
+      <input type="checkbox" id="darkModeToggle" checked />
+    </div>
+    <div class="toggle-container">
+      <label for="soundToggle" class="toggle-label">Sound</label>
+      <input type="checkbox" id="soundToggle" checked />
+    </div>
+  </div>
 
-<div id="footer-credit">Created by Sachin Saikiran</div>
+  <section id="tasksList"></section>
+</main>
+
+<footer>Created by Sachin Saikiran</footer>
 
 <script>
-  (() => {
-    const WORK_MINUTES_DEFAULT = 25;
-    const BREAK_MINUTES_DEFAULT = 5;
+  // Elements
+  const bgColors = document.querySelectorAll('.color-option');
+  const body = document.body;
+  const timerInput = document.getElementById('timerInput');
+  const taskNameInput = document.getElementById('taskName');
+  const timerDisplay = document.getElementById('timerDisplay');
+  const startBtn = document.getElementById('startBtn');
+  const pauseBtn = document.getElementById('pauseBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const tasksList = document.getElementById('tasksList');
+  const darkModeToggle = document.getElementById('darkModeToggle');
+  const soundToggle = document.getElementById('soundToggle');
 
-    // State
-    let isRunning = false;
-    let isWorkSession = true;
-    let workMinutes = WORK_MINUTES_DEFAULT;
-    let breakMinutes = BREAK_MINUTES_DEFAULT;
-    let secondsLeft = workMinutes * 60;
-    let intervalId = null;
-    let soundOn = true;
-    let manSeconds = 0;
+  // Timer variables
+  let timerDuration = 0; // seconds
+  let timerRemaining = 0;
+  let timerInterval = null;
+  let timerRunning = false;
+  let currentTaskName = '';
 
-    // Elements
-    const startPauseBtn = document.getElementById('start-pause-btn');
-    const resetBtn = document.getElementById('reset-btn');
-    const timeDisplay = document.getElementById('time-display');
-    const statusText = document.getElementById('status-text');
-    const progressCircle = document.getElementById('progress-circle');
-    const soundToggleBtn = document.getElementById('sound-toggle');
-    const darkLightToggle = document.getElementById('dark-light-toggle');
-    const bgSelect = document.getElementById('bg-select');
-    const manHoursDisplay = document.getElementById('man-hours');
-    const taskListEl = document.getElementById('task-list');
-    const addTaskForm = document.getElementById('add-task-form');
-    const taskInput = document.getElementById('task-input');
-    const body = document.body;
+  // Man hours storage (taskName => seconds)
+  const taskTimes = {};
 
-    // Sound alarm (simple beep)
-    const alarmSound = new Audio();
-    alarmSound.src = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA="; // silent short clip placeholder
+  // Sounds
+  const tickSound = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
+  const alarmSound = new Audio('https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg');
+  tickSound.volume = 0.15;
+  alarmSound.volume = 0.3;
 
-    // For actual beep, let's create a short beep tone using Web Audio API
-    function playBeep() {
-      if (!soundOn) return;
-      const ctx = new AudioContext();
-      const oscillator = ctx.createOscillator();
-      oscillator.type = 'square';
-      oscillator.frequency.setValueAtTime(1000, ctx.currentTime);
-      oscillator.connect(ctx.destination);
-      oscillator.start();
-      oscillator.stop(ctx.currentTime + 0.15);
-      oscillator.onended = () => ctx.close();
-    }
-
-    // Convert seconds to MM:SS
-    function formatTime(sec) {
-      const m = Math.floor(sec / 60);
-      const s = sec % 60;
-      return `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
-    }
-
-    // Update circle progress
-    function updateProgressCircle() {
-      const totalSeconds = isWorkSession ? workMinutes * 60 : breakMinutes * 60;
-      const percent = secondsLeft / totalSeconds;
-      const circumference = 2 * Math.PI * 150;
-      const offset = circumference * (1 - percent);
-      progressCircle.style.strokeDashoffset = offset;
-    }
-
-    // Update UI
-    function updateUI() {
-      timeDisplay.textContent = formatTime(secondsLeft);
-      statusText.textContent = isWorkSession ? 'Work' : 'Break';
-      updateProgressCircle();
-      startPauseBtn.textContent = isRunning ? 'Pause' : 'Start';
-    }
-
-    // Timer tick
-    function tick() {
-      if (secondsLeft > 0) {
-        secondsLeft--;
-        manSeconds++;
-        updateManHoursDisplay();
-        updateUI();
-      } else {
-        playBeep();
-        isWorkSession = !isWorkSession;
-        secondsLeft = (isWorkSession ? workMinutes : breakMinutes) * 60;
-        updateUI();
-      }
-    }
-
-    // Start timer
-    function startTimer() {
-      if (isRunning) return;
-      isRunning = true;
-      intervalId = setInterval(tick, 1000);
-      updateUI();
-    }
-
-    // Pause timer
-    function pauseTimer() {
-      if (!isRunning) return;
-      isRunning = false;
-      clearInterval(intervalId);
-      updateUI();
-    }
-
-    // Reset timer
-    function resetTimer() {
-      pauseTimer();
-      isWorkSession = true;
-      secondsLeft = workMinutes * 60;
-      manSeconds = 0;
-      updateManHoursDisplay();
-      updateUI();
-    }
-
-    // Update man hours display
-    function updateManHoursDisplay() {
-      const m = Math.floor(manSeconds / 60);
-      const s = manSeconds % 60;
-      manHoursDisplay.textContent = `Man Hours Studied: ${m}m ${s}s`;
-    }
-
-    // Toggle sound
-    soundToggleBtn.addEventListener('click', () => {
-      soundOn = !soundOn;
-      soundToggleBtn.textContent = soundOn ? '🔊 On' : '🔇 Off';
+  // Background color selector logic
+  bgColors.forEach(el => {
+    el.addEventListener('click', () => {
+      bgColors.forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
+      body.style.backgroundColor = el.getAttribute('data-color');
     });
+  });
 
-    // Dark/light mode toggle
-    darkLightToggle.addEventListener('change', () => {
-      if (darkLightToggle.checked) {
-        body.style.backgroundColor = '#fefefe';
-        body.style.color = '#222';
-        // update circle colors for light mode
-        document.getElementById('background-circle').style.stroke = '#ddd';
-        progressCircle.style.stroke = '#0074d9';
-        statusText.style.color = '#222';
-      } else {
-        // revert to chosen bg color below
-        setBackgroundColor(bgSelect.value);
-        statusText.style.color = 'white';
+  // Dark mode toggle logic
+  darkModeToggle.addEventListener('change', () => {
+    if (darkModeToggle.checked) {
+      body.style.color = '#eee';
+      if (!document.querySelector('style#lightModeStyle')) {
+        body.style.backgroundColor = document.querySelector('.color-option.selected').getAttribute('data-color');
       }
-    });
+      main.style.backgroundColor = 'rgba(30,30,30,0.9)';
+    } else {
+      body.style.color = '#121212';
+      body.style.backgroundColor = '#f4f4f4';
+      main.style.backgroundColor = '#fff';
+    }
+  });
 
-    // Background color selector
-    function setBackgroundColor(color) {
-      switch(color) {
-        case 'navy':
-          body.style.backgroundColor = '#0b2342';
-          body.style.color = 'white';
-          document.getElementById('background-circle').style.stroke = 'rgba(255,255,255,0.15)';
-          progressCircle.style.stroke = '#0074d9';
-          break;
-        case 'black':
-          body.style.backgroundColor = '#000000';
-          body.style.color = 'white';
-          document.getElementById('background-circle').style.stroke = 'rgba(255,255,255,0.1)';
-          progressCircle.style.stroke = '#3399ff';
-          break;
-        case 'blue':
-          body.style.backgroundColor = '#0074d9';
-          body.style.color = 'white';
-          document.getElementById('background-circle').style.stroke = 'rgba(255,255,255,0.2)';
-          progressCircle.style.stroke = '#001f3f';
-          break;
-        case 'dark-black-blue':
-          body.style.backgroundColor = '#001a33';
-          body.style.color = 'white';
-          document.getElementById('background-circle').style.stroke = 'rgba(255,255,255,0.1)';
-          progressCircle.style.stroke = '#66a3ff';
-          break;
-        default:
-          body.style.backgroundColor = '#0b2342';
-          body.style.color = 'white';
-          document.getElementById('background-circle').style.stroke = 'rgba(255,255,255,0.15)';
-          progressCircle.style.stroke = '#0074d9';
-      }
+  // Update timer display
+  function updateDisplay(seconds) {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    timerDisplay.textContent = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+  }
+
+  // Start timer
+  startBtn.addEventListener('click', () => {
+    if (timerRunning) return; // already running
+
+    const minutes = parseInt(timerInput.value);
+    if (isNaN(minutes) || minutes <= 0) {
+      alert('Please enter a valid number of minutes (1-180)');
+      return;
+    }
+    timerDuration = minutes * 60;
+    timerRemaining = timerDuration;
+
+    currentTaskName = taskNameInput.value.trim() || 'Untitled Task';
+
+    // Save task if not already there
+    if (!(currentTaskName in taskTimes)) {
+      taskTimes[currentTaskName] = 0;
+      addTaskToList(currentTaskName);
     }
 
-    bgSelect.addEventListener('change', () => {
-      if (!darkLightToggle.checked) {
-        setBackgroundColor(bgSelect.value);
-      }
-    });
+    startBtn.disabled = true;
+    pauseBtn.disabled = false;
+    resetBtn.disabled = false;
+    timerRunning = true;
+    timerInput.disabled = true;
+    taskNameInput.disabled = true;
 
-    // Start/pause button
-    startPauseBtn.addEventListener('click', () => {
-      if (isRunning) {
-        pauseTimer();
-      } else {
-        startTimer();
-      }
-    });
+    updateDisplay(timerRemaining);
+    tick();
 
-    // Reset button
-    resetBtn.addEventListener('click', resetTimer);
+    timerInterval = setInterval(tick, 1000);
+  });
 
-    // Tasks handling
-    let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+  // Pause timer
+  pauseBtn.addEventListener('click', () => {
+    if (!timerRunning) return;
+    clearInterval(timerInterval);
+    timerRunning = false;
+    startBtn.disabled = false;
+    pauseBtn.disabled = true;
+  });
 
-    function saveTasks() {
-      localStorage.setItem('tasks', JSON.stringify(tasks));
+  // Reset timer
+  resetBtn.addEventListener('click', () => {
+    clearInterval(timerInterval);
+    timerRunning = false;
+    timerRemaining = timerDuration;
+    updateDisplay(timerRemaining);
+    startBtn.disabled = false;
+    pauseBtn.disabled = true;
+    resetBtn.disabled = true;
+    timerInput.disabled = false;
+    taskNameInput.disabled = false;
+  });
+
+  // Tick every second
+  function tick() {
+    if (timerRemaining <= 0) {
+      clearInterval(timerInterval);
+      timerRunning = false;
+      updateDisplay(0);
+      startBtn.disabled = false;
+      pauseBtn.disabled = true;
+      resetBtn.disabled = true;
+      timerInput.disabled = false;
+      taskNameInput.disabled = false;
+
+      // Play alarm if sound enabled
+      if (soundToggle.checked) alarmSound.play();
+
+      // Update man hours
+      taskTimes[currentTaskName] += timerDuration;
+
+      updateTaskTime(currentTaskName);
+      return;
     }
 
-    function renderTasks() {
-      taskListEl.innerHTML = '';
-      if (tasks.length === 0) {
-        const emptyMsg = document.createElement('li');
-        emptyMsg.style.justifyContent = 'center';
-        emptyMsg.style.fontWeight = '400';
-        emptyMsg.textContent = 'No tasks added yet.';
-        taskListEl.appendChild(emptyMsg);
-        return;
-      }
-      tasks.forEach((task, i) => {
-        const li = document.createElement('li');
-        const span = document.createElement('span');
-        span.textContent = task;
-        li.appendChild(span);
-        const delBtn = document.createElement('button');
-        delBtn.textContent = 'Delete';
-        delBtn.title = 'Delete task';
-        delBtn.addEventListener('click', () => {
-          tasks.splice(i, 1);
-          saveTasks();
-          renderTasks();
-        });
-        li.appendChild(delBtn);
-        taskListEl.appendChild(li);
-      });
+    timerRemaining--;
+    updateDisplay(timerRemaining);
+
+    if (soundToggle.checked) tickSound.play();
+  }
+
+  // Add task to list UI
+  function addTaskToList(name) {
+    const taskDiv = document.createElement('div');
+    taskDiv.classList.add('task-item');
+    taskDiv.id = `task-${name.replace(/\s+/g, '-')}`;
+
+    const nameSpan = document.createElement('span');
+    nameSpan.classList.add('task-name');
+    nameSpan.textContent = name;
+
+    const timeSpan = document.createElement('span');
+    timeSpan.classList.add('task-time');
+    timeSpan.textContent = formatTime(taskTimes[name]);
+
+    taskDiv.appendChild(nameSpan);
+    taskDiv.appendChild(timeSpan);
+    tasksList.appendChild(taskDiv);
+  }
+
+  // Update task time in UI
+  function updateTaskTime(name) {
+    const timeSpan = document.querySelector(`#task-${name.replace(/\s+/g, '-')} .task-time`);
+    if (timeSpan) {
+      timeSpan.textContent = formatTime(taskTimes[name]);
     }
+  }
 
-    addTaskForm.addEventListener('submit', e => {
-      e.preventDefault();
-      const newTask = taskInput.value.trim();
-      if (newTask.length > 0) {
-        tasks.push(newTask);
-        saveTasks();
-        renderTasks();
-        taskInput.value = '';
-      }
-    });
+  // Format seconds to H M S
+  function formatTime(seconds) {
+    if (seconds <= 0) return '0m';
 
-    // Initialization
-    function init() {
-      updateUI();
-      updateManHoursDisplay();
-      renderTasks();
-      setBackgroundColor(bgSelect.value);
-    }
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
 
-    init();
-  })();
+    let str = '';
+    if (h > 0) str += `${h}h `;
+    if (m > 0) str += `${m}m`;
+    return str.trim();
+  }
 </script>
+
 </body>
 </html>
