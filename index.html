@@ -197,6 +197,43 @@
     left: 21px;
   }
 
+  /* Hydrate tracker */
+  #hydrateTracker {
+    margin-top: 25px;
+    background: #222;
+    padding: 15px 20px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    justify-content: center;
+  }
+  #hydrateTracker button {
+    background: #1e90ff;
+    color: white;
+    padding: 10px 18px;
+    font-weight: 700;
+    border-radius: 8px;
+    box-shadow: none;
+  }
+  #hydrateTracker button:hover {
+    background: #3aa0ff;
+  }
+  #hydrateCount {
+    font-weight: 700;
+    font-size: 1.3rem;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #ddd;
+  }
+  #hydrateCount svg {
+    fill: #1e90ff;
+    width: 28px;
+    height: 28px;
+  }
+
   /* Footer */
   footer {
     text-align: center;
@@ -248,6 +285,14 @@
   </div>
 
   <section id="tasksList"></section>
+
+  <section id="hydrateTracker">
+    <div id="hydrateCount" title="Glasses of water drunk today">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7 22h10v-2H7v2zm8-18h-4l-2 7v6h8v-6l-2-7z"/></svg>
+      <span id="hydrateNumber">0</span> glasses
+    </div>
+    <button id="addWaterBtn">+ Drink Water</button>
+  </section>
 </main>
 
 <footer>Created by Sachin Saikiran</footer>
@@ -266,6 +311,8 @@
   const tasksList = document.getElementById('tasksList');
   const darkModeToggle = document.getElementById('darkModeToggle');
   const soundToggle = document.getElementById('soundToggle');
+  const hydrateNumber = document.getElementById('hydrateNumber');
+  const addWaterBtn = document.getElementById('addWaterBtn');
 
   // Timer variables
   let timerDuration = 0; // seconds
@@ -278,10 +325,12 @@
   const taskTimes = {};
 
   // Sounds
-  const tickSound = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
   const alarmSound = new Audio('https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg');
-  tickSound.volume = 0.15;
   alarmSound.volume = 0.3;
+
+  // Hydrate count stored in localStorage for persistence
+  let hydrateCount = parseInt(localStorage.getItem('hydrateCount')) || 0;
+  hydrateNumber.textContent = hydrateCount;
 
   // Background color selector logic
   bgColors.forEach(el => {
@@ -307,7 +356,7 @@
     }
   });
 
-  // Update timer display - now with HH:MM:SS
+  // Update timer display - HH:MM:SS
   function updateDisplay(seconds) {
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
@@ -346,7 +395,6 @@
     taskNameInput.disabled = true;
 
     updateDisplay(timerRemaining);
-    tick();
 
     timerInterval = setInterval(tick, 1000);
   });
@@ -385,7 +433,7 @@
       timerInput.disabled = false;
       taskNameInput.disabled = false;
 
-      // Play alarm if sound enabled
+      // Play alarm if sound enabled (only when timer ends)
       if (soundToggle.checked) alarmSound.play();
 
       // Update man hours
@@ -397,15 +445,16 @@
 
     timerRemaining--;
     updateDisplay(timerRemaining);
-
-    if (soundToggle.checked) tickSound.play();
   }
 
   // Add task to list UI
   function addTaskToList(name) {
+    const safeId = name.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-_]/g, '');
+    if (document.getElementById(`task-${safeId}`)) return; // already exists
+
     const taskDiv = document.createElement('div');
     taskDiv.classList.add('task-item');
-    taskDiv.id = `task-${name.replace(/\s+/g, '-')}`;
+    taskDiv.id = `task-${safeId}`;
 
     const nameSpan = document.createElement('span');
     nameSpan.classList.add('task-name');
@@ -422,7 +471,8 @@
 
   // Update task time in UI
   function updateTaskTime(name) {
-    const timeSpan = document.querySelector(`#task-${name.replace(/\s+/g, '-')} .task-time`);
+    const safeId = name.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-_]/g, '');
+    const timeSpan = document.querySelector(`#task-${safeId} .task-time`);
     if (timeSpan) {
       timeSpan.textContent = formatTime(taskTimes[name]);
     }
@@ -440,6 +490,13 @@
     if (m > 0) str += `${m}m`;
     return str.trim();
   }
+
+  // Hydrate button logic
+  addWaterBtn.addEventListener('click', () => {
+    hydrateCount++;
+    hydrateNumber.textContent = hydrateCount;
+    localStorage.setItem('hydrateCount', hydrateCount);
+  });
 </script>
 
 </body>
