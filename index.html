@@ -126,8 +126,8 @@
     user-select: none;
   }
 
-  /* Task lists */
-  #tasksList, #completedTasksList {
+  /* Task list */
+  #tasksList {
     margin-top: 10px;
   }
   .task-item {
@@ -151,21 +151,6 @@
     color: #bbb;
     font-size: 0.9rem;
     user-select: none;
-    min-width: 45px;
-    text-align: right;
-  }
-
-  .complete-btn {
-    background-color: #1e90ff;
-    color: white;
-    padding: 6px 12px;
-    margin-left: 15px;
-    border-radius: 6px;
-    font-size: 0.85rem;
-    box-shadow: none;
-  }
-  .complete-btn:hover {
-    background-color: #3aa0ff;
   }
 
   /* Dark/light toggle container */
@@ -248,26 +233,8 @@
     width: 28px;
     height: 28px;
   }
-  #removeWaterBtn {
-    background: #d9534f;
-  }
-  #removeWaterBtn:hover {
-    background: #f44336;
-  }
 
-  /* Completed tasks section */
-  #completedSection {
-    margin-top: 30px;
-    border-top: 2px solid #444;
-    padding-top: 15px;
-  }
-  #completedSection h3 {
-    font-weight: 700;
-    color: #1e90ff;
-    user-select: none;
-    margin-bottom: 12px;
-  }
-
+  /* Footer */
   footer {
     text-align: center;
     color: rgba(255,255,255,0.15);
@@ -319,19 +286,12 @@
 
   <section id="tasksList"></section>
 
-  <!-- Completed Tasks Section -->
-  <section id="completedSection">
-    <h3>Completed Tasks</h3>
-    <div id="completedTasksList"></div>
-  </section>
-
   <section id="hydrateTracker">
     <div id="hydrateCount" title="Glasses of water drunk today">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7 22h10v-2H7v2zm8-18h-4l-2 7v6h8v-6l-2-7z"/></svg>
       <span id="hydrateNumber">0</span> glasses
     </div>
     <button id="addWaterBtn">+ Drink Water</button>
-    <button id="removeWaterBtn">- Remove Water</button>
   </section>
 </main>
 
@@ -349,12 +309,10 @@
   const pauseBtn = document.getElementById('pauseBtn');
   const resetBtn = document.getElementById('resetBtn');
   const tasksList = document.getElementById('tasksList');
-  const completedTasksList = document.getElementById('completedTasksList');
   const darkModeToggle = document.getElementById('darkModeToggle');
   const soundToggle = document.getElementById('soundToggle');
   const hydrateNumber = document.getElementById('hydrateNumber');
   const addWaterBtn = document.getElementById('addWaterBtn');
-  const removeWaterBtn = document.getElementById('removeWaterBtn');
 
   // Timer variables
   let timerDuration = 0; // seconds
@@ -365,7 +323,6 @@
 
   // Man hours storage (taskName => seconds)
   const taskTimes = {};
-  const completedTasks = {}; // Store completed tasks for display
 
   // Sounds
   const alarmSound = new Audio('https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg');
@@ -424,8 +381,8 @@
 
     currentTaskName = taskNameInput.value.trim() || 'Untitled Task';
 
-    // Save task if not already there and not completed
-    if (!(currentTaskName in taskTimes) && !(currentTaskName in completedTasks)) {
+    // Save task if not already there
+    if (!(currentTaskName in taskTimes)) {
       taskTimes[currentTaskName] = 0;
       addTaskToList(currentTaskName);
     }
@@ -507,17 +464,8 @@
     timeSpan.classList.add('task-time');
     timeSpan.textContent = formatTime(taskTimes[name]);
 
-    // Complete button
-    const completeBtn = document.createElement('button');
-    completeBtn.classList.add('complete-btn');
-    completeBtn.textContent = 'Complete';
-    completeBtn.title = `Mark "${name}" as completed`;
-    completeBtn.addEventListener('click', () => completeTask(name));
-
     taskDiv.appendChild(nameSpan);
     taskDiv.appendChild(timeSpan);
-    taskDiv.appendChild(completeBtn);
-
     tasksList.appendChild(taskDiv);
   }
 
@@ -532,3 +480,24 @@
 
   // Format seconds to H M
   function formatTime(seconds) {
+    if (seconds <= 0) return '0m';
+
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+
+    let str = '';
+    if (h > 0) str += `${h}h `;
+    if (m > 0) str += `${m}m`;
+    return str.trim();
+  }
+
+  // Hydrate button logic
+  addWaterBtn.addEventListener('click', () => {
+    hydrateCount++;
+    hydrateNumber.textContent = hydrateCount;
+    localStorage.setItem('hydrateCount', hydrateCount);
+  });
+</script>
+
+</body>
+</html>
