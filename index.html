@@ -234,7 +234,7 @@
     <button id="resetBtn" disabled>Reset</button>
   </div>
 
-  <div id="timerDisplay">00:00</div>
+  <div id="timerDisplay">00:00:00</div>
 
   <div id="toggles">
     <div class="toggle-container">
@@ -256,6 +256,7 @@
   // Elements
   const bgColors = document.querySelectorAll('.color-option');
   const body = document.body;
+  const main = document.querySelector('main');
   const timerInput = document.getElementById('timerInput');
   const taskNameInput = document.getElementById('taskName');
   const timerDisplay = document.getElementById('timerDisplay');
@@ -306,11 +307,15 @@
     }
   });
 
-  // Update timer display
+  // Update timer display - now with HH:MM:SS
   function updateDisplay(seconds) {
-    const m = Math.floor(seconds / 60);
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
     const s = seconds % 60;
-    timerDisplay.textContent = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+    timerDisplay.textContent = 
+      `${h.toString().padStart(2,'0')}:` +
+      `${m.toString().padStart(2,'0')}:` +
+      `${s.toString().padStart(2,'0')}`;
   }
 
   // Start timer
@@ -423,7 +428,7 @@
     }
   }
 
-  // Format seconds to H M S
+  // Format seconds to H M
   function formatTime(seconds) {
     if (seconds <= 0) return '0m';
 
