@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Study Timer Pomodoro with Tasks</title>
+<style>
+  :root {
+    --clr-light-bg: #f0f2f5;
+    --clr-light-text: #222;
+    --clr-light-accent: #4caf50;
+    --clr-light-btn-bg: #ddd;
+    --clr-light-btn-hover: #bbb;
+
+    --clr-dark-bg: #121212;
+    --clr-dark-text: #eee;
+    --clr-dark-accent: #4caf50;
+    --clr-dark-btn-bg: #333;
+    --clr-dark-btn-hover: #555;
+
+    --transition-time: 0.3s;
+  }
+
+  body {
+    margin: 0; padding: 20px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: var(--clr-dark-bg);
+    color: var(--clr-dark-text);
+    transition: background var(--transition-time), color var(--transition-time);
+  }
+
+  body.light {
+    background: var(--clr-light-bg);
+    color: var(--clr-light-text);
+  }
+
+  h1 {
+    text-align: center;
+    margin-bottom: 5px;
+  }
+
+  .container {
+    max-width: 480px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .mode-toggle, .sound-toggle {
+    cursor: pointer;
+    border: none;
+    background: none;
+    font-size: 1.1rem;
+    margin: 0 5px;
+    color: inherit;
+    transition: color var(--transition-time);
+  }
+  .mode-toggle:hover, .sound-toggle:hover {
+    color: var(--clr-dark-accent);
+  }
+  body.light .mode-toggle:hover,
+  body.light .sound-toggle:hover {
+    color: var(--clr-light-accent);
+  }
+
+  /* Timer display */
+  .timer-display {
+    font-size: 5rem;
+    font-weight: 700;
+    letter-spacing: 5px;
+    margin: 20px 0;
+  }
+
+  /* Controls */
+  .controls button {
+    background: var(--clr-dark-btn-bg);
+    color: var(--clr-dark-text);
+    border: none;
+    padding: 12px 24px;
+    margin: 5px;
+    border-radius: 6px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background var(--transition-time);
+  }
+  .controls button:hover:not(:disabled) {
+    background: var(--clr-dark-btn-hover);
+  }
+  body.light .controls button {
+    background: var(--clr-light-btn-bg);
+    color: var(--clr-light-text);
+  }
+  body.light .controls button:hover:not(:disabled) {
+    background: var(--clr-light-btn-hover);
+  }
+  .controls button:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+
+  /* Settings inputs */
+  .settings {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin: 15px 0;
+  }
+  .settings label {
+    display: flex;
+    flex-direction: column;
+    font-size: 1rem;
+    user-select: none;
+  }
+  .settings input[type=number], .settings input[type=text] {
+    margin-top: 5px;
+    width: 80px;
+    padding: 5px;
+    border-radius: 4px;
+    border: none;
+    font-size: 1rem;
+    text-align: center;
+  }
+
+  /* Tasks */
+  .tasks {
+    margin-top: 30px;
+    text-align: left;
+  }
+  .tasks h2 {
+    margin-bottom: 10px;
+  }
+  .task-form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+  }
+  .task-form input[type=text], .task-form input[type=number] {
+    flex: 1;
+    padding: 6px 10px;
+    font-size: 1rem;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+  }
+  .task-form button {
+    padding: 7px 14px;
+    font-size: 1rem;
+    border-radius: 5px;
+    border: none;
+    background: var(--clr-dark-btn-bg);
+    color: var(--clr-dark-text);
+    cursor: pointer;
+    transition: background var(--transition-time);
+  }
+  .task-form button:hover {
+    background: var(--clr-dark-btn-hover);
+  }
+  body.light .task-form button {
+    background: var(--clr-light-btn-bg);
+    color: var(--clr-light-text);
+  }
+  body.light .task-form button:hover {
+    background: var(--clr-light-btn-hover);
+  }
+
+  ul.task-list {
+    list-style: none;
+    padding: 0;
+  }
+  ul.task-list li {
+    background: var(--clr-dark-btn-bg);
+    padding: 12px 15px;
+    margin-bottom: 8px;
+    border-radius: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--clr-dark-text);
+    transition: background var(--transition-time);
+  }
+  body.light ul.task-list li {
+    background: var(--clr-light-btn-bg);
+    color: var(--clr-light-text);
+  }
+  ul.task-list li.active {
+    border: 2px solid var(--clr-dark-accent);
+  }
+  ul.task-list li button {
+    background: transparent;
+    border: none;
+    color: #f44336;
+    font-size: 1.3rem;
+    cursor: pointer;
+  }
+
+  /* Progress circle */
+  svg {
+    transform: rotate(-90deg);
+    width: 180px;
+    height: 180px;
+    margin: 0 auto;
+    display: block;
+  }
+  circle {
+    fill: none;
+    stroke-width: 12;
+    stroke-linecap: round;
+  }
+  .bg-circle {
+    stroke: #333;
+  }
+  body.light .bg-circle {
+    stroke: #bbb;
+  }
+  .progress-circle {
+    stroke: var(--clr-dark-accent);
+    stroke-dasharray: 565.48;
+    stroke-dashoffset: 565.48;
+    transition: stroke-dashoffset 0.3s linear;
+  }
+  body.light .progress-circle {
+    stroke: var(--clr-light-accent);
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <h1>Study Timer Pomodoro</h1>
+    <div>
+      <button id="modeToggle" class="mode-toggle" title="Toggle Dark/Light Mode">🌙</button>
+      <button id="soundToggle" class="sound-toggle" title="Toggle Sound">🔈</button>
+    </div>
+
+    <svg>
+      <circle class="bg-circle" r="90" cx="100" cy="100"></circle>
+      <circle class="progress-circle" r="90" cx="100" cy="100"></circle>
+    </svg>
+    <div class="timer-display" id="time">25:00</div>
+
+    <div class="controls">
+      <button id="startBtn">Start</button>
+      <button id="pauseBtn" disabled>Pause</button>
+      <button id="resetBtn">Reset</button>
+    </div>
+
+    <div class="settings">
+      <label>
+        Work (minutes)
+        <input type="number" id="workInput" min="1" max="120" value="25" />
+      </label>
+      <label>
+        Break (minutes)
+        <input type="number" id="breakInput" min="1" max="60" value="5" />
+      </label>
+    </div>
+
+    <section class="tasks">
+      <h2>Tasks</h2>
+      <form id="taskForm" class="task-form" autocomplete="off">
+        <input type="text" id="taskName" placeholder="Task name" required />
+        <input type="number" id="taskDuration" placeholder="Duration (min)" min="1" max="180" required />
+        <button type="submit">Add Task</button>
+      </form>
+      <ul id="taskList" class="task-list"></ul>
+    </section>
+  </div>
+
+<script>
+(() => {
+  const FULL_DASH_ARRAY = 565.48;
+
+  // Elements
+  const body = document.body;
+  const modeToggle = document.getElementById('modeToggle');
+  const soundToggle = document.getElementById('soundToggle');
+  const startBtn = document.getElementById('startBtn');
+  const pauseBtn = document.getElementById('pauseBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const timeDisplay = document.getElementById('time');
+  const workInput = document.getElementById('workInput');
+  const breakInput = document.getElementById('breakInput');
+  const progressCircle = document.querySelector('.progress-circle');
+  const taskForm = document.getElementById('taskForm');
+  const taskList = document.getElementById('taskList');
+  const taskNameInput = document.getElementById('taskName');
+  const taskDurationInput = document.getElementById('taskDuration');
+
+  // Audio for alert
+  const alertSound = new Audio('https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg');
+  alertSound.volume = 0.5;
+
+  let timerInterval = null;
+  let timeLeft = 0;
+  let isRunning = false;
+  let isWorkSession = true;
+  let soundOn = true;
+
+  // Tasks array [{id, name, durationSec, isActive}]
+  let tasks = [];
+
+  // Currently selected task id
+  let currentTaskId = null;
+
+  // Save and Load settings
+  function saveSettings() {
+    localStorage.setItem('workMinutes', workInput.value);
+    localStorage.setItem('breakMinutes', breakInput.value);
+    localStorage.setItem('darkMode', body.classList.contains('light') ? 'false' : 'true');
+    localStorage.setItem('soundOn', soundOn ? 'true' : 'false');
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+    localStorage.setItem('currentTaskId', currentTaskId);
+  }
+  function loadSettings() {
+    const w = localStorage.getItem('workMinutes');
+    const b = localStorage.getItem('breakMinutes');
+    const dm = localStorage.getItem('darkMode');
+    const snd = localStorage.getItem('soundOn');
+    const savedTasks = localStorage.getItem('tasks');
+    const savedCurrentTaskId = localStorage.getItem('currentTaskId');
+
+    if (w) workInput.value = w;
+    if (b) breakInput.value = b;
+    if (dm === 'false') {
+      body.classList.add('light');
+      modeToggle.textContent = '☀️';
+    }
+    if (snd === 'false') {
+      soundOn = false;
+      soundToggle.textContent = '🔇';
+    }
+    if (savedTasks) {
+      tasks = JSON.parse(savedTasks);
+      currentTaskId = savedCurrentTaskId || null;
+    }
+  }
+
+  // Format seconds to mm:ss
+  function formatTime(seconds) {
+    const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+    const s = (seconds % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+  }
+
+  // Update time display & circle
+  function updateTime() {
+    timeDisplay.textContent = formatTime(timeLeft);
+    const total = isWorkSession ? workInput.value * 60 : breakInput.value * 60;
+    setCircleProgress(timeLeft, total);
+  }
+
+  function setCircleProgress(secondsLeft, totalSeconds) {
+    const offset = FULL_DASH_ARRAY - (secondsLeft / totalSeconds) * FULL_DASH_ARRAY;
+    progressCircle.style.strokeDashoffset = offset;
+  }
+
+  // Start timer
+  function startTimer() {
+    if (isRunning) return;
+    if (timeLeft <= 0) {
+      if (currentTaskId) {
+        // Start with task time
+        const task = tasks.find(t => t.id === currentTaskId);
+        if (!task) {
+          alert('Selected task not found. Please select a valid task.');
+          return;
+        }
+        timeLeft = task.durationSec;
+        isWorkSession = true;
+      } else {
+        timeLeft = workInput.value * 60;
+        isWorkSession = true;
+      }
+    }
+    isRunning = true;
+    startBtn.disabled = true;
+    pauseBtn.disabled = false;
+    timerInterval = setInterval(tick, 1000);
+    saveSettings();
+  }
+
+  // Pause timer
+  function pauseTimer() {
+    if (!isRunning) return;
+    isRunning = false;
+    clearInterval(timerInterval);
+    startBtn.disabled = false;
+    pauseBtn.disabled = true;
+    saveSettings();
+  }
+
+  // Reset timer
+  function resetTimer() {
+    pauseTimer();
+    if (currentTaskId) {
+      const task = tasks.find(t => t.id === currentTaskId);
+      timeLeft = task ? task.durationSec : workInput.value * 60;
+    } else {
+      timeLeft = workInput.value * 60;
+    }
+    isWorkSession = true;
+    updateTime();
+    saveSettings();
+  }
+
+  // Tick each second
+  function tick() {
+    if (timeLeft > 0) {
+      timeLeft--;
+      updateTime();
+    } else {
+      clearInterval(timerInterval);
+      isRunning = false;
+      startBtn.disabled = false;
+      pauseBtn.disabled = true;
+      if (soundOn) alertSound.play();
+      if (isWorkSession) {
+        // Switch to break
+        isWorkSession = false;
+        timeLeft = breakInput.value * 60;
+        alert('Break time! Relax for a bit.');
+        updateTime();
+        startTimer();
+      } else {
+        // Back to work/task
+        isWorkSession = true;
+        if (currentTaskId) {
+          const task = tasks.find(t => t.id === currentTaskId);
+          timeLeft = task ? task.durationSec : workInput.value * 60;
+        } else {
+          timeLeft = workInput.value * 60;
+        }
+        alert('Work session started!');
+        updateTime();
+        startTimer();
+      }
+    }
+  }
+
+  // Toggle dark/light mode
+  modeToggle.addEventListener('click', () => {
+    body.classList.toggle('light');
+    modeToggle.textContent = body.classList.contains('light') ? '☀️' : '🌙';
+    saveSettings();
+  });
+
+  // Toggle sound on/off
+  soundToggle.addEventListener('click', () => {
+    soundOn = !soundOn;
+    soundToggle.textContent = soundOn ? '🔈' : '🔇';
+    saveSettings();
+  });
+
+  // Add task
+  taskForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const name = taskNameInput.value.trim();
+    let duration = parseInt(taskDurationInput.value);
+    if (!name) {
+      alert('Task name cannot be empty.');
+      return;
+    }
+    if (!duration || duration < 1) {
+      alert('Duration must be at least 1 minute.');
+      return;
+    }
+    if (duration > 180) {
+      alert('Max duration is 180 minutes.');
+      return;
+    }
+    const id = Date.now().toString();
+    tasks.push({ id, name, durationSec: duration * 60 });
+    taskNameInput.value = '';
+    taskDurationInput.value = '';
+    currentTaskId = id; // auto select new task
+    renderTasks();
+    resetTimer();
+    saveSettings();
+  });
+
+  // Render tasks list
+  function renderTasks() {
+    taskList.innerHTML = '';
+    tasks.forEach(task => {
+      const li = document.createElement('li');
+      li.classList.toggle('active', task.id === currentTaskId);
+      li.textContent = `${task.name} — ${Math.floor(task.durationSec / 60)} min`;
+
+      // Select task on click
+      li.addEventListener('click', () => {
+        currentTaskId = task.id;
+        resetTimer();
+        renderTasks();
+        saveSettings();
+      });
+
+      // Delete button
+      const delBtn = document.createElement('button');
+      delBtn.innerHTML = '✕';
+      delBtn.title = 'Delete task';
+      delBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        if (confirm(`Delete task "${task.name}"?`)) {
+          tasks = tasks.filter(t => t.id !== task.id);
+          if (currentTaskId === task.id) currentTaskId = null;
+          renderTasks();
+          resetTimer();
+          saveSettings();
+        }
+      });
+
+      li.appendChild(delBtn);
+      taskList.appendChild(li);
+    });
+  }
+
+  // Update inputs change -> reset timer
+  workInput.addEventListener('change', () => {
+    if (!isRunning) resetTimer();
+    saveSettings();
+  });
+  breakInput.addEventListener('change', () => {
+    if (!isRunning) resetTimer();
+    saveSettings();
+  });
+
+  // Initialize app
+  function init() {
+    loadSettings();
+    renderTasks();
+
+    if (currentTaskId) {
+      const task = tasks.find(t => t.id === currentTaskId);
+      timeLeft = task ? task.durationSec : workInput.value * 60;
+    } else {
+      timeLeft = workInput.value * 60;
+    }
+    updateTime();
+  }
+
+  // Button event listeners
+  startBtn.addEventListener('click', startTimer);
+  pauseBtn.addEventListener('click', pauseTimer);
+  resetBtn.addEventListener('click', resetTimer);
+
+  // Run init
+  init();
+})();
+</script>
+</body>
+</html>
