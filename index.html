@@ -127,9 +127,8 @@
   }
 
   /* Task list */
-  #tasksList, #doingList, #completedList {
+  #tasksList {
     margin-top: 10px;
-    min-height: 100px;
   }
   .task-item {
     background: #222;
@@ -139,7 +138,6 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    cursor: grab;
   }
   .task-name {
     flex-grow: 1;
@@ -244,87 +242,6 @@
     user-select: none;
     margin-bottom: 12px;
   }
-
-  /* ===== NEW ADDITIONS START ===== */
-
-  /* Tabs container */
-  #taskTabs {
-    margin-top: 30px;
-  }
-  .tab-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 12px;
-    margin-bottom: 15px;
-  }
-  .tab-buttons button {
-    flex: 1;
-    background: #444;
-    color: #ccc;
-    border-radius: 6px;
-    padding: 8px 0;
-    font-weight: 700;
-    font-size: 1rem;
-    box-shadow: none;
-  }
-  .tab-buttons button.active {
-    background: #1e90ff;
-    color: white;
-    box-shadow: 0 4px 8px rgba(30,144,255,0.6);
-  }
-
-  /* Task boards */
-  .task-board {
-    background: #222;
-    padding: 15px;
-    border-radius: 8px;
-    min-height: 120px;
-  }
-
-  /* Dragging styles */
-  .task-item.dragging {
-    opacity: 0.6;
-    cursor: grabbing;
-  }
-  .task-board.dragover {
-    background-color: #1e90ff33;
-  }
-
-  /* Responsive tweaks */
-  @media (max-width: 600px) {
-    main {
-      margin: 0.5rem 1rem 1rem 1rem;
-      padding: 1rem 1.2rem 1.5rem 1.2rem;
-      max-width: 100%;
-    }
-    #timerDisplay {
-      font-size: 2.8rem;
-      margin: 20px 0 12px 0;
-    }
-    button {
-      padding: 10px 14px;
-      margin-right: 6px;
-      font-size: 0.9rem;
-    }
-    .tab-buttons {
-      flex-direction: column;
-      gap: 8px;
-    }
-    .tab-buttons button {
-      flex: none;
-    }
-  }
-
-  /* New Remove Water Button styling */
-  #removeWaterBtn {
-    background: #d9534f;
-  }
-  #removeWaterBtn:hover {
-    background: #c9302c;
-  }
-
-  /* ===== NEW ADDITIONS END ===== */
-
 </style>
 </head>
 <body>
@@ -367,19 +284,7 @@
     </div>
   </div>
 
-  <!-- ===== NEW: Task tabs start ===== -->
-  <section id="taskTabs">
-    <div class="tab-buttons">
-      <button class="active" data-tab="tasksList">Tasks</button>
-      <button data-tab="doingList">Doing</button>
-      <button data-tab="completedList">Completed</button>
-    </div>
-
-    <div id="tasksList" class="task-board" data-status="tasks"></div>
-    <div id="doingList" class="task-board" data-status="doing" style="display:none;"></div>
-    <div id="completedList" class="task-board" data-status="completed" style="display:none;"></div>
-  </section>
-  <!-- ===== NEW: Task tabs end ===== -->
+  <section id="tasksList"></section>
 
   <section id="hydrateTracker">
     <div id="hydrateCount" title="Glasses of water drunk today">
@@ -387,8 +292,6 @@
       <span id="hydrateNumber">0</span> glasses
     </div>
     <button id="addWaterBtn">+ Drink Water</button>
-    <!-- ===== NEW: Remove water button ===== -->
-    <button id="removeWaterBtn">- Remove Water</button>
   </section>
 </main>
 
@@ -406,14 +309,10 @@
   const pauseBtn = document.getElementById('pauseBtn');
   const resetBtn = document.getElementById('resetBtn');
   const tasksList = document.getElementById('tasksList');
-  const doingList = document.getElementById('doingList');
-  const completedList = document.getElementById('completedList');
   const darkModeToggle = document.getElementById('darkModeToggle');
   const soundToggle = document.getElementById('soundToggle');
   const hydrateNumber = document.getElementById('hydrateNumber');
   const addWaterBtn = document.getElementById('addWaterBtn');
-  const removeWaterBtn = document.getElementById('removeWaterBtn');
-  const tabButtons = document.querySelectorAll('#taskTabs .tab-buttons button');
 
   // Timer variables
   let timerDuration = 0; // seconds
@@ -424,9 +323,6 @@
 
   // Man hours storage (taskName => seconds)
   const taskTimes = {};
-
-  // Task status storage (taskName => status: 'tasks', 'doing', 'completed')
-  const taskStatus = {};
 
   // Sounds
   const alarmSound = new Audio('https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg');
@@ -488,8 +384,7 @@
     // Save task if not already there
     if (!(currentTaskName in taskTimes)) {
       taskTimes[currentTaskName] = 0;
-      taskStatus[currentTaskName] = 'tasks'; // Default status on adding task
-      addTaskToList(currentTaskName, 'tasks');
+      addTaskToList(currentTaskName);
     }
 
     startBtn.disabled = true;
@@ -520,8 +415,89 @@
     timerRemaining = timerDuration;
     updateDisplay(timerRemaining);
     startBtn.disabled = false;
+    pauseBtn.disabled = true;
+    resetBtn.disabled = true;
+    timerInput.disabled = false;
+    taskNameInput.disabled = false;
+  });
 
-    <button id="testBtn">Test Button</button>
-<script>
-document.getElementById('testBtn').addEventListener('click', () => alert('Clicked!'));
+  // Tick every second
+  function tick() {
+    if (timerRemaining <= 0) {
+      clearInterval(timerInterval);
+      timerRunning = false;
+      updateDisplay(0);
+      startBtn.disabled = false;
+      pauseBtn.disabled = true;
+      resetBtn.disabled = true;
+      timerInput.disabled = false;
+      taskNameInput.disabled = false;
+
+      // Play alarm if sound enabled (only when timer ends)
+      if (soundToggle.checked) alarmSound.play();
+
+      // Update man hours
+      taskTimes[currentTaskName] += timerDuration;
+
+      updateTaskTime(currentTaskName);
+      return;
+    }
+
+    timerRemaining--;
+    updateDisplay(timerRemaining);
+  }
+
+  // Add task to list UI
+  function addTaskToList(name) {
+    const safeId = name.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-_]/g, '');
+    if (document.getElementById(`task-${safeId}`)) return; // already exists
+
+    const taskDiv = document.createElement('div');
+    taskDiv.classList.add('task-item');
+    taskDiv.id = `task-${safeId}`;
+
+    const nameSpan = document.createElement('span');
+    nameSpan.classList.add('task-name');
+    nameSpan.textContent = name;
+
+    const timeSpan = document.createElement('span');
+    timeSpan.classList.add('task-time');
+    timeSpan.textContent = formatTime(taskTimes[name]);
+
+    taskDiv.appendChild(nameSpan);
+    taskDiv.appendChild(timeSpan);
+    tasksList.appendChild(taskDiv);
+  }
+
+  // Update task time in UI
+  function updateTaskTime(name) {
+    const safeId = name.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-_]/g, '');
+    const timeSpan = document.querySelector(`#task-${safeId} .task-time`);
+    if (timeSpan) {
+      timeSpan.textContent = formatTime(taskTimes[name]);
+    }
+  }
+
+  // Format seconds to H M
+  function formatTime(seconds) {
+    if (seconds <= 0) return '0m';
+
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+
+    let str = '';
+    if (h > 0) str += `${h}h `;
+    if (m > 0) str += `${m}m`;
+    return str.trim();
+  }
+
+  // Hydrate button logic
+  addWaterBtn.addEventListener('click', () => {
+    hydrateCount++;
+    hydrateNumber.textContent = hydrateCount;
+    localStorage.setItem('hydrateCount', hydrateCount);
+  });
 </script>
+
+</body>
+</html>
